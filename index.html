@@ -1,0 +1,217 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+export default function DCardSimulator() {
+  const [mobileFee, setMobileFee] = useState(11000);
+  const [hikariFee, setHikariFee] = useState(5720);
+  const [denkiFee, setDenkiFee] = useState(8000);
+  const [shoppingFee, setShoppingFee] = useState(100000);
+  const [familyLines, setFamilyLines] = useState(4);
+
+  const result = useMemo(() => {
+    const telecomTotal = mobileFee + hikariFee + denkiFee;
+
+    let telecomMultiplier = 10;
+
+    if (shoppingFee >= 200000) {
+      telecomMultiplier = 20;
+    } else if (shoppingFee >= 100000) {
+      telecomMultiplier = 15;
+    }
+
+    const telecomPoint =
+      Math.floor(telecomTotal / 1000) * telecomMultiplier;
+
+    let shoppingPoint = 0;
+
+    if (shoppingFee <= 100000) {
+      shoppingPoint = shoppingFee * 0.11;
+    } else {
+      shoppingPoint =
+        100000 * 0.11 +
+        (shoppingFee - 100000) * 0.01;
+    }
+
+    const familyPoint =
+      familyLines >= 2 ? familyLines * 300 : 0;
+
+    const monthlyPoint =
+      telecomPoint +
+      shoppingPoint +
+      familyPoint;
+
+    const yearlyPoint = monthlyPoint * 12;
+
+    const yearlyUsage =
+      (mobileFee +
+        hikariFee +
+        denkiFee +
+        shoppingFee) *
+      12;
+
+    let coupon = 0;
+    let nextTarget = 1000000;
+
+    if (yearlyUsage >= 4000000) {
+      coupon = 40000;
+      nextTarget = yearlyUsage;
+    } else if (yearlyUsage >= 3000000) {
+      coupon = 30000;
+      nextTarget = 4000000;
+    } else if (yearlyUsage >= 2000000) {
+      coupon = 20000;
+      nextTarget = 3000000;
+    } else if (yearlyUsage >= 1000000) {
+      coupon = 10000;
+      nextTarget = 2000000;
+    }
+
+    const remain =
+      nextTarget > yearlyUsage
+        ? nextTarget - yearlyUsage
+        : 0;
+
+    return {
+      telecomPoint,
+      shoppingPoint,
+      familyPoint,
+      monthlyPoint,
+      yearlyPoint,
+      yearlyUsage,
+      coupon,
+      remain,
+      telecomMultiplier,
+    };
+  }, [
+    mobileFee,
+    hikariFee,
+    denkiFee,
+    shoppingFee,
+    familyLines,
+  ]);
+
+  return (
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">
+        dカード PLATINUM ポイ活シミュレーター
+      </h1>
+
+      <div className="grid gap-4">
+
+        <input
+          type="number"
+          value={mobileFee}
+          onChange={(e) =>
+            setMobileFee(Number(e.target.value))
+          }
+          placeholder="月々の携帯料金"
+          className="border p-3 rounded"
+        />
+
+        <input
+          type="number"
+          value={hikariFee}
+          onChange={(e) =>
+            setHikariFee(Number(e.target.value))
+          }
+          placeholder="月々のドコモ光料金"
+          className="border p-3 rounded"
+        />
+
+        <input
+          type="number"
+          value={denkiFee}
+          onChange={(e) =>
+            setDenkiFee(Number(e.target.value))
+          }
+          placeholder="月々のドコモでんき料金"
+          className="border p-3 rounded"
+        />
+
+        <input
+          type="number"
+          value={shoppingFee}
+          onChange={(e) =>
+            setShoppingFee(Number(e.target.value))
+          }
+          placeholder="月々のお買い物料金"
+          className="border p-3 rounded"
+        />
+
+        <input
+          type="number"
+          value={familyLines}
+          onChange={(e) =>
+            setFamilyLines(Number(e.target.value))
+          }
+          placeholder="ポイ活ファミリー特典回線数"
+          className="border p-3 rounded"
+        />
+      </div>
+
+      <div className="mt-8 border rounded-xl p-6 bg-gray-50">
+        <h2 className="text-xl font-bold mb-4">
+          シミュレーション結果
+        </h2>
+
+        <p>
+          ドコモ関連倍率：
+          {result.telecomMultiplier}倍
+        </p>
+
+        <p>
+          ドコモ関連ポイント：
+          {Math.round(result.telecomPoint).toLocaleString()}pt/月
+        </p>
+
+        <p>
+          ショッピングポイント：
+          {Math.round(result.shoppingPoint).toLocaleString()}pt/月
+        </p>
+
+        <p>
+          ファミリー特典：
+          {Math.round(result.familyPoint).toLocaleString()}pt/月
+        </p>
+
+        <hr className="my-4" />
+
+        <p>
+          月間ポイント：
+          {Math.round(result.monthlyPoint).toLocaleString()}pt
+        </p>
+
+        <p>
+          年間ポイント：
+          {Math.round(result.yearlyPoint).toLocaleString()}pt
+        </p>
+
+        <p>
+          年間利用額：
+          ¥{result.yearlyUsage.toLocaleString()}
+        </p>
+
+        <p>
+          クーポン特典：
+          ¥{result.coupon.toLocaleString()}
+        </p>
+
+        {result.remain > 0 && (
+          <div className="mt-4 bg-yellow-100 p-4 rounded">
+            🎉 次の特典まであと
+            ¥{result.remain.toLocaleString()}
+          </div>
+        )}
+
+        {result.coupon > 0 && (
+          <div className="mt-4 bg-green-100 p-4 rounded">
+            🎁
+            クーポン獲得予定額：
+            ¥{result.coupon.toLocaleString()}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
